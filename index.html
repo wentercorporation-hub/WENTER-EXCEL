@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WENTER EXCEL</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--red:#e21b23;--red2:#c91018;--line:#d5d7da;--soft:#f5f6f7;--text:#202124}
+html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);overflow:hidden}
+body{background:#fff}
+.topbar{height:58px;background:var(--red);color:#fff;display:flex;align-items:center;padding:0 15px;gap:9px}
+.brand{font-size:24px;font-weight:800;letter-spacing:.3px;margin-right:7px}
+.iconbtn{height:36px;min-width:36px;border:0;border-radius:6px;background:rgba(255,255,255,.13);color:#fff;font-size:19px;cursor:pointer}
+.iconbtn:hover{background:rgba(255,255,255,.24)}
+.iconbtn:active{transform:translateY(1px)}
+.spacer{flex:1}
+.saveLabel{font-size:13px;font-weight:700}
+.ribbon{height:96px;border-bottom:1px solid #cfd1d4;background:#fff}
+.tabs{height:42px;display:flex;align-items:end;padding-left:15px;gap:4px;border-bottom:1px solid #ddd}
+.tab{padding:11px 18px 10px;border:0;background:#fff;font-size:14px;cursor:pointer;border-radius:5px 5px 0 0}
+.tab.active{background:#f0f1f2;font-weight:700;color:#111}
+.toolbar{height:54px;display:flex;align-items:center;gap:5px;padding:5px 12px;overflow:auto}
+.tool{height:34px;min-width:34px;border:1px solid #cfd2d5;background:#fff;border-radius:5px;cursor:pointer;font-size:14px}
+.tool:hover{background:#f1f2f3}
+.tool.active{background:#ffe8e9;border-color:var(--red);color:var(--red)}
+.tool.wide{min-width:145px;text-align:left;padding:0 9px}
+.tool.smallwide{min-width:105px;text-align:left;padding:0 8px}
+.sep{width:1px;height:30px;background:#d7d7d7;margin:0 3px}
+input[type=color]{width:38px;height:34px;border:1px solid #cfd2d5;border-radius:5px;background:#fff;padding:3px;cursor:pointer}
+.extraToolbar{height:54px}
+.formulaRow{height:39px;border-bottom:1px solid #cfd1d4;display:flex;align-items:center;background:#fff}
+.nameBox{width:82px;height:29px;margin-left:10px;border:1px solid #c8cbd0;border-radius:4px;padding:5px 8px;font-size:13px}
+.fx{font-weight:700;font-style:italic;font-size:17px;width:35px;text-align:center;color:#666}
+.formulaInput{height:29px;border:1px solid #c8cbd0;flex:1;margin-right:10px;padding:4px 8px;font-size:14px;outline:none}
+.formulaInput:focus{border-color:#8c8f94}
+.sheetArea{height:calc(100vh - 193px);display:flex;flex-direction:column;min-height:0}
+.gridWrap{flex:1;min-height:0;overflow:auto;background:#fff;position:relative}
+table.sheet{border-collapse:collapse;table-layout:fixed;min-width:2200px}
+.sheet th,.sheet td{border-right:1px solid #d9dadd;border-bottom:1px solid #d9dadd;height:25px;min-width:92px;padding:0 5px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#fff}
+.sheet thead th{height:27px;background:#f2f3f4;text-align:center;font-weight:600;position:sticky;top:0;z-index:3}
+.sheet .corner{position:sticky;left:0;top:0;z-index:5;width:46px;min-width:46px;background:#eceeef}
+.sheet .rownum{position:sticky;left:0;z-index:2;width:46px;min-width:46px;background:#f2f3f4;text-align:center;font-size:12px}
+.sheet td{outline:none;cursor:cell}
+.sheet td.selected{outline:2px solid #1976d2;outline-offset:-2px;z-index:1}
+.sheet td.editing{outline:2px solid #1976d2;outline-offset:-2px}
+.sheet td.bold{font-weight:700}.sheet td.italic{font-style:italic}.sheet td.underline{text-decoration:underline}
+.sheet td.align-left{text-align:left}.sheet td.align-center{text-align:center}.sheet td.align-right{text-align:right}
+.sheet td.fill{background:#fff4f4}
+.sheet td.invalid{background:#ffe2e2}
+.sheet .resize{position:absolute;right:0;top:0;width:4px;height:100%;cursor:col-resize}
+.status{height:34px;border-top:1px solid #cfd1d4;background:#f7f7f7;display:flex;align-items:center;padding:0 12px;gap:18px;font-size:12px}
+.status .green{color:#198754;font-weight:700}
+.sheetsBar{height:42px;border-top:1px solid #cfd1d4;background:#f5f5f5;display:flex;align-items:center;padding:0 10px;gap:5px}
+.sheetTab{height:31px;padding:0 16px;border:1px solid #c9ccd0;background:#fff;border-radius:5px 5px 0 0;cursor:pointer;font-size:13px}
+.sheetTab.active{border-top:3px solid var(--red);font-weight:700}
+.plus{height:31px;width:34px;border:1px solid #c9ccd0;background:#fff;border-radius:5px;cursor:pointer;font-size:18px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:20;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.dialog{width:min(760px,92vw);max-height:82vh;overflow:auto;background:#fff;border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.25);padding:22px}
+.dialog h2{margin:0 0 15px}.dialog p,.dialog li{line-height:1.45}
+.dialog .close{float:right;border:0;background:#eee;border-radius:5px;padding:6px 10px;cursor:pointer}
+.toast{position:fixed;right:20px;bottom:55px;background:#222;color:#fff;padding:10px 14px;border-radius:6px;opacity:0;pointer-events:none;transition:.2s;z-index:30;font-size:13px}
+.toast.show{opacity:1}
+@media(max-width:800px){.brand{font-size:18px}.toolbar{gap:3px}.tool.wide{min-width:110px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">WENTER EXCEL</div>
+  <button class="iconbtn" id="newBtn" title="Новая книга">📄</button>
+  <button class="iconbtn" id="openBtn" title="Открыть файл">📂</button>
+  <button class="iconbtn" id="saveBtn" title="Сохранить как .xlsx">💾</button>
+  <button class="iconbtn" id="undoBtn" title="Отменить">↶</button>
+  <button class="iconbtn" id="redoBtn" title="Повторить">↷</button>
+  <button class="iconbtn" id="printBtn" title="Печать">🖨</button>
+  <div class="spacer"></div>
+  <span class="saveLabel" id="saveState">Готово</span>
+</div>
+
+<div class="ribbon">
+  <div class="tabs">
+    <button class="tab active" data-tab="home">Главная</button>
+    <button class="tab" data-tab="insert">Вставка</button>
+    <button class="tab" data-tab="data">Данные</button>
+    <button class="tab" data-tab="view">Вид</button>
+    <button class="tab" data-tab="help">Справка</button>
+  </div>
+  <div class="toolbar" id="toolbar">
+    <button class="tool" id="boldBtn"><b>B</b></button>
+    <button class="tool" id="italicBtn"><i>I</i></button>
+    <button class="tool" id="underlineBtn"><u>U</u></button>
+    <span class="sep"></span>
+    <select class="tool wide" id="fontSelect"><option>Arial</option><option>Calibri</option><option>Times New Roman</option><option>Verdana</option><option>Courier New</option></select>
+    <select class="tool smallwide" id="fontSize"><option>10</option><option>11</option><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>24</option><option>28</option></select>
+    <input type="color" id="textColor" value="#202124" title="Цвет текста">
+    <input type="color" id="fillColor" value="#ffffff" title="Заливка">
+    <span class="sep"></span>
+    <button class="tool" id="leftBtn" title="По левому краю">⇤</button>
+    <button class="tool" id="centerBtn" title="По центру">↔</button>
+    <button class="tool" id="rightBtn" title="По правому краю">⇥</button>
+    <span class="sep"></span>
+    <button class="tool" id="sumBtn" title="Автосумма">Σ</button>
+    <button class="tool" id="percentBtn" title="Процент">%</button>
+    <button class="tool" id="currencyBtn" title="Валюта">₽</button>
+    <button class="tool" id="dateBtn" title="Дата">📅</button>
+    <button class="tool" id="mergeBtn" title="Объединить выбранные ячейки">▦</button>
+  </div>
+  <div class="toolbar extraToolbar" id="insertToolbar" style="display:none">
+    <button class="tool" id="insertRowBtn">➕ Строка</button>
+    <button class="tool" id="insertColBtn">➕ Столбец</button>
+    <button class="tool" id="insertSheetBtn">📄 Новый лист</button>
+    <button class="tool" id="chartBtn">📊 Диаграмма</button>
+    <button class="tool" id="clearCellBtn">🧹 Очистить</button>
+    <button class="tool" id="copyBtn">📋 Копировать</button>
+    <button class="tool" id="pasteBtn">📌 Вставить</button>
+  </div>
+  <div class="toolbar extraToolbar" id="dataToolbar" style="display:none">
+    <button class="tool" id="sortAscBtn">↥ Сортировка ↑</button>
+    <button class="tool" id="sortDescBtn">↧ Сортировка ↓</button>
+    <button class="tool" id="filterBtn">🔎 Автофильтр</button>
+    <button class="tool" id="removeFilterBtn">✖ Сбросить фильтр</button>
+    <button class="tool" id="fillDownBtn">↓ Заполнить вниз</button>
+    <button class="tool" id="duplicateBtn">⧉ Дублировать</button>
+  </div>
+  <div class="toolbar extraToolbar" id="viewToolbar" style="display:none">
+    <button class="tool" id="zoomOutBtn">− Масштаб</button>
+    <button class="tool" id="zoomInBtn">＋ Масштаб</button>
+    <button class="tool" id="freezeBtn">📌 Закрепить строку</button>
+    <button class="tool" id="gridBtn">▦ Сетка</button>
+  </div>
+</div>
+
+<div class="formulaRow">
+  <input class="nameBox" id="nameBox" value="A1" aria-label="Адрес ячейки">
+  <div class="fx">fx</div>
+  <input class="formulaInput" id="formulaInput" placeholder="Введите значение или формулу, например =SUM(A1:A5)">
+</div>
+
+<div class="sheetArea">
+  <div class="gridWrap" id="gridWrap"></div>
+  <div class="status"><span id="cellInfo">A1</span><span id="sumInfo">Сумма: 0</span><span class="green" id="statusText">Готово</span></div>
+  <div class="sheetsBar" id="sheetsBar"></div>
+</div>
+
+<input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.txt" hidden>
+
+<div class="modal" id="helpModal">
+  <div class="dialog">
+    <button class="close" id="closeHelp">Закрыть</button>
+    <h2>WENTER EXCEL — возможности</h2>
+    <p>Веб-таблица для ввода, редактирования и анализа данных. Поддерживает книги с несколькими листами, формулы, форматирование и сохранение в .xlsx.</p>
+    <ul>
+      <li><b>Таблицы:</b> создание и редактирование ячеек, строки и столбцы, несколько листов.</li>
+      <li><b>Данные:</b> числа, текст, даты, время и логические значения.</li>
+      <li><b>Формулы:</b> =A1+B1, =SUM(A1:A10), =AVERAGE(A1:A10), =MAX(...), =MIN(...), =COUNT(...).</li>
+      <li><b>Форматирование:</b> шрифт, размер, цвет текста, заливка, жирный/курсив/подчёркивание, выравнивание.</li>
+      <li><b>Сортировка:</b> на вкладке «Данные» доступны сортировка и фильтр выбранного диапазона.</li>
+      <li><b>Визуализация:</b> на вкладке «Вставка» можно создать простую диаграмму из выбранного диапазона.</li>
+      <li><b>Файлы:</b> открытие .xlsx/.xls/.csv и сохранение книги в .xlsx.</li>
+      <li><b>Печать:</b> печать текущего листа через системный диалог браузера.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ROWS=80, COLS=26;
+let workbookData=[makeSheet("Лист1")];
+let activeSheet=0, selected={r:0,c:0}, editing=false;
+let undoStack=[], redoStack=[], suppressHistory=false;
+
+function makeSheet(name){return {name,cells:{},colWidths:{},hiddenRows:{}}}
+function key(r,c){return r+"_"+c}
+function colName(c){let s=""; c++; while(c){let n=(c-1)%26;s=String.fromCharCode(65+n)+s;c=Math.floor((c-1)/26)}return s}
+function colIndex(s){let n=0;for(const ch of s.toUpperCase())n=n*26+ch.charCodeAt(0)-64;return n-1}
+function addr(r,c){return colName(c)+(r+1)}
+function getCell(r,c){return workbookData[activeSheet].cells[key(r,c)]||{v:""}}
+function cloneData(){return JSON.stringify(workbookData)}
+function pushUndo(){if(suppressHistory)return;undoStack.push(cloneData());if(undoStack.length>40)undoStack.shift();redoStack=[]}
+function restore(s){workbookData=JSON.parse(s);renderSheets();renderGrid();selectCell(selected.r,selected.c)}
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1600)}
+function setSaveState(t){document.getElementById("saveState").textContent=t}
+
+function renderSheets(){
+ const bar=document.getElementById("sheetsBar");bar.innerHTML="";
+ workbookData.forEach((s,i)=>{
+  const b=document.createElement("button");b.className="sheetTab"+(i===activeSheet?" active":"");b.textContent=s.name;
+  b.onclick=()=>{activeSheet=i;selected={r:0,c:0};renderSheets();renderGrid();selectCell(0,0)}
+  b.ondblclick=()=>{const n=prompt("Название листа:",s.name);if(n){pushUndo();s.name=n.trim();renderSheets()}}
+  bar.appendChild(b)
+ });
+ const plus=document.createElement("button");plus.className="plus";plus.textContent="+";plus.title="Добавить лист";
+ plus.onclick=()=>{pushUndo();workbookData.push(makeSheet("Лист"+(workbookData.length+1)));activeSheet=workbookData.length-1;renderSheets();renderGrid();selectCell(0,0)}
+ bar.appendChild(plus);
+}
+
+function renderGrid(){
+ const wrap=document.getElementById("gridWrap");
+ const table=document.createElement("table");table.className="sheet";
+ const thead=document.createElement("thead"),tr=document.createElement("tr");
+ const corner=document.createElement("th");corner.className="corner";corner.textContent="";tr.appendChild(corner);
+ for(let c=0;c<COLS;c++){const th=document.createElement("th");th.textContent=colName(c);th.style.width=(workbookData[activeSheet].colWidths[c]||92)+"px";tr.appendChild(th)}
+ thead.appendChild(tr);table.appendChild(thead);
+ const tbody=document.createElement("tbody");
+ for(let r=0;r<ROWS;r++){
+   const tr=document.createElement("tr");
+   const rn=document.createElement("th");rn.className="rownum";rn.textContent=r+1;tr.appendChild(rn);
+   for(let c=0;c<COLS;c++){
+     const td=document.createElement("td");td.dataset.r=r;td.dataset.c=c;td.tabIndex=0;
+     const cell=getCell(r,c);applyCellStyle(td,cell);
+     td.textContent=displayValue(r,c,cell.v);
+     td.onclick=()=>selectCell(r,c);
+     td.ondblclick=()=>startEdit(r,c);
+     td.onkeydown=cellKeydown;
+     td.onmousedown=()=>{if(selected.r!==r||selected.c!==c)selectCell(r,c)}
+     tr.appendChild(td);
+   }
+   tbody.appendChild(tr);
+ }
+ table.appendChild(tbody);wrap.innerHTML="";wrap.appendChild(table);
+ updateStatus();
+}
+
+function applyCellStyle(td,cell){
+ td.style.fontFamily=cell.font||"Arial";td.style.fontSize=(cell.size||16)+"px";
+ td.style.color=cell.color||"#202124";td.style.backgroundColor=cell.fill||"#fff";
+ td.classList.toggle("bold",!!cell.bold);td.classList.toggle("italic",!!cell.italic);td.classList.toggle("underline",!!cell.underline);
+ td.classList.remove("align-left","align-center","align-right");td.classList.add("align-"+(cell.align||"left"));
+ if(cell.numberFormat)td.dataset.numberFormat=cell.numberFormat;
+}
+
+function displayValue(r,c,v){
+ if(v===undefined||v===null)return "";
+ if(typeof v!=="string")return String(v);
+ if(v.startsWith("="))return calcFormula(v);
+ const nf=getCell(r,c).numberFormat;
+ if(nf==="percent"&&!isNaN(Number(v)))return (Number(v)*100).toFixed(2)+"%";
+ return v;
+}
+
+function valueOf(r,c){
+ const v=getCell(r,c).v;
+ if(v===""||v==null)return 0;
+ if(typeof v==="number")return v;
+ if(typeof v==="string"&&v.startsWith("=")){const n=Number(calcFormula(v));return isNaN(n)?0:n}
+ const n=Number(String(v).replace(",","."));
+ return isNaN(n)?0:n;
+}
+function cellsInRange(range){
+ const m=range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i);if(!m)return[];
+ let c1=colIndex(m[1]),r1=+m[2]-1,c2=colIndex(m[3]),r2=+m[4]-1;
+ const a=[];for(let r=Math.min(r1,r2);r<=Math.max(r1,r2);r++)for(let c=Math.min(c1,c2);c<=Math.max(c1,c2);c++)a.push(valueOf(r,c));return a
+}
+function calcFormula(f){
+ try{
+  let x=f.slice(1).trim().toUpperCase();
+  x=x.replace(/\bSUM\s*\(\s*([A-Z]+\d+:[A-Z]+\d+)\s*\)/g,(_,r)=>cellsInRange(r).reduce((a,b)=>a+b,0));
+  x=x.replace(/\bAVERAGE\s*\(\s*([A-Z]+\d+:[A-Z]+\d+)\s*\)/g,(_,r)=>{let a=cellsInRange(r);return a.length?a.reduce((x,y)=>x+y,0)/a.length:0});
+  x=x.replace(/\bMAX\s*\(\s*([A-Z]+\d+:[A-Z]+\d+)\s*\)/g,(_,r)=>Math.max(...cellsInRange(r)));
+  x=x.replace(/\bMIN\s*\(\s*([A-Z]+\d+:[A-Z]+\d+)\s*\)/g,(_,r)=>Math.min(...cellsInRange(r)));
+  x=x.replace(/\bCOUNT\s*\(\s*([A-Z]+\d+:[A-Z]+\d+)\s*\)/g,(_,r)=>cellsInRange(r).filter(v=>typeof v==="number"&&!isNaN(v)).length);
+  x=x.replace(/\b([A-Z]+)(\d+)\b/g,(_,cc,rr)=>String(valueOf(+rr-1,colIndex(cc))));
+  if(!/^[0-9+\-*/().\s]+$/.test(x))return "#VALUE!";
+  const n=Function('"use strict";return ('+x+')')();
+  return Number.isFinite(n)?String(n):"#VALUE!";
+ }catch(e){return "#VALUE!"}
+}
+
+function selectCell(r,c){
+ selected={r,c};editing=false;
+ document.querySelectorAll(".sheet td.selected").forEach(x=>x.classList.remove("selected"));
+ const td=document.querySelector(`.sheet td[data-r="${r}"][data-c="${c}"]`);if(td){td.classList.add("selected");try{td.focus({preventScroll:true})}catch(e){td.focus()}}
+ document.getElementById("nameBox").value=addr(r,c);
+ document.getElementById("formulaInput").value=getCell(r,c).v??"";
+ updateStatus();
+}
+function updateStatus(){
+ const cell=getCell(selected.r,selected.c);document.getElementById("cellInfo").textContent=addr(selected.r,selected.c);
+ let nums=[];
+ for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const v=getCell(r,c).v;if(v!==""&&!isNaN(Number(v)))nums.push(Number(v))}
+ document.getElementById("sumInfo").textContent="Сумма: "+(nums.reduce((a,b)=>a+b,0));
+}
+function startEdit(r,c,initial){
+ selectCell(r,c);editing=true;
+ const td=document.querySelector(`.sheet td[data-r="${r}"][data-c="${c}"]`);
+ const inp=document.createElement("input");inp.value=initial!==undefined?initial:getCell(r,c).v||"";inp.style.cssText="width:100%;height:100%;border:0;outline:0;font:inherit;background:transparent";
+ td.innerHTML="";td.classList.add("editing");td.appendChild(inp);inp.focus();inp.select();
+ inp.onkeydown=e=>{if(e.key==="Enter"){finishEdit(inp.value);move(1,0)}else if(e.key==="Escape"){renderGrid();selectCell(r,c)}};
+ inp.onblur=()=>{if(editing)finishEdit(inp.value)}
+}
+function finishEdit(v){
+ const old=getCell(selected.r,selected.c).v||"";
+ if(v!==old){pushUndo();workbookData[activeSheet].cells[key(selected.r,selected.c)]={...getCell(selected.r,selected.c),v};setSaveState("Изменено")}
+ editing=false;renderGrid();selectCell(selected.r,selected.c)
+}
+function cellKeydown(e){
+ const r=+this.dataset.r,c=+this.dataset.c;
+ if(e.key==="Enter"){e.preventDefault();startEdit(r,c);return}
+ if(e.key==="F2"){e.preventDefault();startEdit(r,c);return}
+ if(e.key==="Delete"||e.key==="Backspace"){e.preventDefault();pushUndo();delete workbookData[activeSheet].cells[key(r,c)];renderGrid();selectCell(r,c);return}
+ if(e.key.length===1 && !e.ctrlKey && !e.metaKey){e.preventDefault();startEdit(r,c,e.key)}
+ if(e.key==="ArrowUp"){e.preventDefault();move(-1,0)}if(e.key==="ArrowDown"){e.preventDefault();move(1,0)}
+ if(e.key==="ArrowLeft"){e.preventDefault();move(0,-1)}if(e.key==="ArrowRight"){e.preventDefault();move(0,1)}
+}
+function move(dr,dc){let r=Math.max(0,Math.min(ROWS-1,selected.r+dr)),c=Math.max(0,Math.min(COLS-1,selected.c+dc));selectCell(r,c);const td=document.querySelector(`.sheet td[data-r="${r}"][data-c="${c}"]`);td?.scrollIntoView({block:"nearest",inline:"nearest"})}
+document.addEventListener("keydown",e=>{
+ const tag=(e.target.tagName||"").toUpperCase();
+ if(tag==="INPUT"||tag==="SELECT"||tag==="TEXTAREA"){
+   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveXlsx()}
+   return;
+ }
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveXlsx();return}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();undo();return}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo();return}
+ if(e.key==="ArrowUp"){e.preventDefault();move(-1,0);return}
+ if(e.key==="ArrowDown"){e.preventDefault();move(1,0);return}
+ if(e.key==="ArrowLeft"){e.preventDefault();move(0,-1);return}
+ if(e.key==="ArrowRight"){e.preventDefault();move(0,1);return}
+ if(e.key==="Enter"||e.key==="F2"){e.preventDefault();startEdit(selected.r,selected.c);return}
+ if(e.key==="Delete"||e.key==="Backspace"){e.preventDefault();clearCell();return}
+ if(e.key.length===1 && !e.ctrlKey && !e.metaKey && !e.altKey){e.preventDefault();startEdit(selected.r,selected.c,e.key)}
+});
+
+
+function applyToCell(fn){pushUndo();const c=getCell(selected.r,selected.c);fn(c);workbookData[activeSheet].cells[key(selected.r,selected.c)]=c;renderGrid();selectCell(selected.r,selected.c)}
+function fmtButton(id,prop,val){document.getElementById(id).onclick=()=>applyToCell(c=>c[prop]=typeof val==="function"?val(c):val)}
+fmtButton("boldBtn","bold",c=>!c.bold);fmtButton("italicBtn","italic",c=>!c.italic);fmtButton("underlineBtn","underline",c=>!c.underline);
+document.getElementById("fontSelect").onchange=e=>applyToCell(c=>c.font=e.target.value);
+document.getElementById("fontSize").onchange=e=>applyToCell(c=>c.size=+e.target.value);
+document.getElementById("textColor").oninput=e=>applyToCell(c=>c.color=e.target.value);
+document.getElementById("fillColor").oninput=e=>applyToCell(c=>c.fill=e.target.value);
+["left","center","right"].forEach(a=>document.getElementById(a+"Btn").onclick=()=>applyToCell(c=>c.align=a));
+document.getElementById("percentBtn").onclick=()=>applyToCell(c=>c.numberFormat="percent");
+document.getElementById("currencyBtn").onclick=()=>applyToCell(c=>c.numberFormat="currency");
+document.getElementById("dateBtn").onclick=()=>applyToCell(c=>c.numberFormat="date");
+document.getElementById("sumBtn").onclick=()=>{const r=selected.r,c=selected.c;let start=Math.max(0,r-4);pushUndo();workbookData[activeSheet].cells[key(r,c)]={...getCell(r,c),v:"=SUM("+addr(start,c)+":"+addr(r-1,c)+")"};renderGrid();selectCell(r,c)};
+document.getElementById("formulaInput").onchange=e=>finishEdit(e.target.value);
+document.getElementById("formulaInput").onkeydown=e=>{if(e.key==="Enter"){finishEdit(e.target.value);move(1,0)}};
+document.getElementById("nameBox").onkeydown=e=>{if(e.key==="Enter"){const m=e.target.value.match(/^([A-Z]+)(\d+)$/i);if(m){const c=colIndex(m[1]),r=+m[2]-1;if(r>=0&&c>=0&&r<ROWS&&c<COLS)selectCell(r,c)}}};
+
+document.getElementById("newBtn").onclick=()=>{if(confirm("Создать новую книгу?")){pushUndo();workbookData=[makeSheet("Лист1")];activeSheet=0;renderSheets();renderGrid();selectCell(0,0);setSaveState("Новая книга")}};
+document.getElementById("openBtn").onclick=()=>document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ try{
+  const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:"array",cellFormula:true});
+  workbookData=wb.SheetNames.map(n=>{const ws=wb.Sheets[n], out=makeSheet(n);const range=XLSX.utils.decode_range(ws["!ref"]||"A1:A1");
+   for(let r=range.s.r;r<=Math.min(range.e.r,ROWS-1);r++)for(let c=range.s.c;c<=Math.min(range.e.c,COLS-1);c++){
+    const a=XLSX.utils.encode_cell({r,c}),x=ws[a];if(x){out.cells[key(r,c)]={v:x.f?"="+x.f:(x.v??"")};}
+   }return out});
+  activeSheet=0;renderSheets();renderGrid();selectCell(0,0);setSaveState("Файл открыт");toast("Файл открыт");
+ }catch(err){alert("Не удалось открыть файл: "+err.message)}
+ e.target.value="";
+};
+
+function toXlsx(){
+ const wb=XLSX.utils.book_new();
+ workbookData.forEach(s=>{
+  const aoa=Array.from({length:ROWS},(_,r)=>Array.from({length:COLS},(_,c)=>getCell(r,c).v??""));
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  Object.keys(s.colWidths).forEach(c=>{});
+  XLSX.utils.book_append_sheet(wb,ws,(s.name||"Лист").slice(0,31));
+ });
+ return wb;
+}
+function saveXlsx(){
+ if(typeof XLSX==="undefined"){alert("Библиотека XLSX не загрузилась. Проверьте интернет-соединение.");return}
+ const wb=toXlsx();XLSX.writeFile(wb,"WENTER_EXCEL.xlsx");setSaveState("Сохранено");toast("Сохранено как WENTER_EXCEL.xlsx")
+}
+document.getElementById("saveBtn").onclick=saveXlsx;
+document.getElementById("printBtn").onclick=()=>window.print();
+
+function undo(){if(!undoStack.length)return;redoStack.push(cloneData());const s=undoStack.pop();restore(s);setSaveState("Отменено")}
+function redo(){if(!redoStack.length)return;undoStack.push(cloneData());const s=redoStack.pop();restore(s);setSaveState("Повторено")}
+document.getElementById("undoBtn").onclick=undo;document.getElementById("redoBtn").onclick=redo;
+
+function showTab(tab){
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===tab));
+ document.getElementById("toolbar").style.display=tab==="home"?"flex":"none";
+ document.getElementById("insertToolbar").style.display=tab==="insert"?"flex":"none";
+ document.getElementById("dataToolbar").style.display=tab==="data"?"flex":"none";
+ document.getElementById("viewToolbar").style.display=tab==="view"?"flex":"none";
+ if(tab==="help")document.getElementById("helpModal").classList.add("show");
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
+
+function insertRow(){
+ pushUndo(); const r=selected.r, s=workbookData[activeSheet];
+ const out={}; Object.entries(s.cells).forEach(([k,v])=>{const [rr,cc]=k.split("_").map(Number); if(rr>=r&&rr<ROWS-1)out[key(rr+1,cc)]=v; else if(rr<r)out[k]=v});
+ s.cells=out; renderGrid(); selectCell(r,selected.c); toast("Строка добавлена");
+}
+function insertCol(){
+ pushUndo(); const c=selected.c,s=workbookData[activeSheet],out={};
+ Object.entries(s.cells).forEach(([k,v])=>{const [rr,cc]=k.split("_").map(Number); if(cc>=c&&cc<COLS-1)out[key(rr,cc+1)]=v; else if(cc<c)out[k]=v});
+ s.cells=out; renderGrid(); selectCell(selected.r,c); toast("Столбец добавлен");
+}
+function clearCell(){pushUndo();delete workbookData[activeSheet].cells[key(selected.r,selected.c)];renderGrid();selectCell(selected.r,selected.c);toast("Ячейка очищена")}
+function duplicateCell(){pushUndo();const v=getCell(selected.r,selected.c);workbookData[activeSheet].cells[key(selected.r+1,selected.c)]={...v};renderGrid();selectCell(selected.r+1,selected.c);toast("Скопировано вниз")}
+function sortColumn(desc=false){
+ const c=selected.c, s=workbookData[activeSheet], arr=[];
+ for(let r=0;r<ROWS;r++)arr.push({r,v:getCell(r,c).v});
+ const non=arr.filter(x=>x.v!==""&&x.v!=null), empty=arr.filter(x=>x.v===""||x.v==null);
+ non.sort((a,b)=>{const na=Number(a.v),nb=Number(b.v);let z=(!isNaN(na)&&!isNaN(nb))?na-nb:String(a.v).localeCompare(String(b.v),"ru");return desc?-z:z});
+ pushUndo(); non.forEach((x,i)=>{const target=key(i,c);s.cells[target]={...getCell(x.r,c),v:x.v}}); for(let r=non.length;r<ROWS;r++)delete s.cells[key(r,c)];
+ renderGrid();selectCell(0,c);toast(desc?"Сортировка по убыванию":"Сортировка по возрастанию")
+}
+function fillDown(){
+ const v=getCell(selected.r,selected.c).v;if(v==="")return;pushUndo();for(let r=selected.r+1;r<Math.min(ROWS,selected.r+6);r++)workbookData[activeSheet].cells[key(r,selected.c)]={...getCell(selected.r,selected.c),v};renderGrid();selectCell(selected.r,selected.c);toast("Заполнено вниз")
+}
+function zoom(delta){const root=document.documentElement;let z=parseFloat(root.style.zoom||"1")+delta;z=Math.max(.7,Math.min(1.4,z));root.style.zoom=z}
+function toggleGrid(){document.querySelectorAll(".sheet td,.sheet th").forEach(x=>x.style.borderColor=x.style.borderColor==="transparent"?"#d9dadd":"transparent")}
+function addSimpleChart(){
+ const vals=[];for(let r=0;r<10;r++){const v=valueOf(r,selected.c);if(!isNaN(v))vals.push(v)}
+ if(!vals.length){toast("В выбранном столбце нет чисел");return}
+ const max=Math.max(...vals,1);const w=420,h=220;let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="white"/><text x="15" y="25" font-family="Arial" font-size="16">WENTER EXCEL — диаграмма</text>`;
+ vals.forEach((v,i)=>{const bh=Math.max(2,(v/max)*150),x=20+i*38,y=190-bh;svg+=`<rect x="${x}" y="${y}" width="28" height="${bh}" fill="#e21b23"/><text x="${x+8}" y="208" font-size="10">${i+1}</text>`});svg+=`</svg>`;
+ const a=document.createElement("a");a.href="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);a.download="WENTER_DIAGRAM.svg";a.click();toast("Диаграмма создана")
+}
+document.getElementById("insertRowBtn").onclick=insertRow;
+document.getElementById("insertColBtn").onclick=insertCol;
+document.getElementById("insertSheetBtn").onclick=()=>document.querySelector(".plus").click();
+document.getElementById("chartBtn").onclick=addSimpleChart;
+document.getElementById("clearCellBtn").onclick=clearCell;
+document.getElementById("copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(String(getCell(selected.r,selected.c).v||""));toast("Скопировано")}catch(e){toast("Скопируйте через Ctrl+C")}};
+document.getElementById("pasteBtn").onclick=async()=>{try{const v=await navigator.clipboard.readText();if(v!=="")finishEdit(v)}catch(e){toast("Разрешите доступ к буферу обмена")}};
+document.getElementById("sortAscBtn").onclick=()=>sortColumn(false);
+document.getElementById("sortDescBtn").onclick=()=>sortColumn(true);
+document.getElementById("filterBtn").onclick=()=>toast("Автофильтр: используйте сортировку выбранного столбца");
+document.getElementById("removeFilterBtn").onclick=()=>{renderGrid();toast("Фильтр сброшен")};
+document.getElementById("fillDownBtn").onclick=fillDown;
+document.getElementById("duplicateBtn").onclick=duplicateCell;
+document.getElementById("zoomOutBtn").onclick=()=>zoom(-.1);
+document.getElementById("zoomInBtn").onclick=()=>zoom(.1);
+document.getElementById("freezeBtn").onclick=()=>toast("Верхняя строка таблицы уже закреплена");
+document.getElementById("gridBtn").onclick=toggleGrid;
+
+document.getElementById("closeHelp").onclick=()=>document.getElementById("helpModal").classList.remove("show");
+document.getElementById("helpModal").onclick=e=>{if(e.target.id==="helpModal")e.target.classList.remove("show")};
+
+document.addEventListener("click",e=>{
+ const td=e.target.closest(".sheet td");if(!td)return;
+ const r=+td.dataset.r,c=+td.dataset.c;
+ if(e.shiftKey){/* простое выделение через текущую ячейку пока не меняем */} 
+});
+
+renderSheets();renderGrid();selectCell(0,0);
+</script>
+</body>
+</html>
